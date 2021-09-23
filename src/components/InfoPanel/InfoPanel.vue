@@ -27,8 +27,8 @@ import { callers } from '@/api/callers'
 import { convertToDayMonth } from '@/helpers/dates'
 import { bigMath } from '@/helpers/bigMath'
 import { getAPIDate } from '@/helpers/requests'
-import { QueryTxVolumeResponse } from '@provider/codec/telemetry/query'
 import { handleError } from '@/helpers/errors'
+import { Pagination } from '@/api/query-ext/telemetryExtension'
 
 export default defineComponent({
   name: 'InfoPanel',
@@ -38,6 +38,8 @@ export default defineComponent({
     const transactionData = ref<Array<Link> | null>()
     const transactionCount = ref<number>()
     const chartDataLoad = ref(false)
+    const endDate = new Date()
+    const startDate = new Date()
 
     const chartData = ref<ChartDataType>({
       labels: [],
@@ -55,18 +57,60 @@ export default defineComponent({
       ],
     })
 
+    const testTelemetry = async (): Promise<void> => {
+      const pagination: Pagination = new Pagination([], 0, 0, true, true)
+      console.log('testTelemetry')
+
+      try {
+        // telemetry.unverified.topBalances
+        console.log(
+          'getTopBalances',
+          await callers.getTopBalances({
+            denom: 'loki',
+            pagination,
+            desc: true,
+          })
+        )
+
+        // telemetry.unverified.extendedValidators
+        console.log(
+          'extendedValidators',
+          await callers.getExtendedValidators({ status: '', pagination })
+        )
+
+        // telemetry.unverified.avgBlockSize
+        console.log(
+          'getAvgBlockSize',
+          await callers.getAvgBlockSize({ startDate: undefined, endDate })
+        )
+        // telemetry.unverified.avgBlockTime
+        console.log(
+          'getAvgBlockTime',
+          await callers.getAvgBlockTime({ startDate: undefined, endDate })
+        )
+
+        // telemetry.unverified.txVolume
+        console.log(
+          'getTxVolume',
+          await callers.getTxVolume({
+            startDate: undefined,
+            endDate,
+          })
+        )
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
     const getLatestTelemetry = async (): Promise<void> => {
       try {
-        const endDate = new Date()
-        const startDate = new Date()
         startDate.setDate(startDate.getDate() - 2)
-
         await getCoinInfo()
 
-        const { txVolumePerDay } = (await callers.getTelemetry({
+        const { txVolumePerDay } = await callers.getTxVolume({
           startDate,
           endDate,
-        })) as QueryTxVolumeResponse
+        })
 
         console.debug('txVolumePerDay', txVolumePerDay)
 
@@ -138,6 +182,7 @@ export default defineComponent({
     }
 
     onMounted(async () => {
+      await testTelemetry()
       await getLatestTelemetry()
     })
 

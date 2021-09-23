@@ -147,11 +147,20 @@ const makeCallers = () => {
     getStatus: tmQuerier((tc) => tc.status.bind(tc)),
     getGenesis: tmQuerier((tc) => tc.genesis.bind(tc)),
     getHealth: tmQuerier((tc) => tc.health.bind(tc)),
-    getTelemetry: cacheAnswers(
+    getTxVolume: cacheAnswers(
       querier((qc) => qc.telemetry.unverified.txVolume)
     ),
     getTopBalances: cacheAnswers(
       querier((qc) => qc.telemetry.unverified.topBalances)
+    ),
+    getExtendedValidators: cacheAnswers(
+      querier((qc) => qc.telemetry.unverified.extendedValidators)
+    ),
+    getAvgBlockSize: cacheAnswers(
+      querier((qc) => qc.telemetry.unverified.avgBlockSize)
+    ),
+    getAvgBlockTime: cacheAnswers(
+      querier((qc) => qc.telemetry.unverified.avgBlockTime)
     ),
     getPendingTransactions: (limit: number) => {
       return sendGet(`${API_CONFIG.rpc}/unconfirmed_txs?limit=${limit}`)

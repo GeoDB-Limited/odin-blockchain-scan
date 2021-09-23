@@ -29,7 +29,7 @@ export class Pagination {
   countTotal: boolean
 
   constructor(
-    key: Array<never>,
+    key: Array<any>,
     offset: number,
     limit: number,
     desc: boolean,
