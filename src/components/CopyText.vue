@@ -1,6 +1,6 @@
 <template>
   <div class="copy-text">
-    <span class="copy-text__value" :title="displayTitle">
+    <span :class="className" :title="displayTitle">
       {{ displayValue }}
     </span>
     <div class="copy-text__btn-wrp mg-l8">
@@ -29,6 +29,7 @@ export default defineComponent({
     text: { type: NumLikeTypes as PropType<NumLike>, required: true },
     displayText: { type: NumLikeTypes as PropType<NumLike>, required: false },
     title: { type: NumLikeTypes as PropType<NumLike>, required: false },
+    className: { type: String, required: false },
   },
   setup(props) {
     const _text = toRef(props, 'text')
@@ -62,39 +63,41 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-.copy-text__btn-wrp {
-  display: inline-block;
-  position: relative;
-  line-height: 1;
-}
+.copy-text {
+  display: flex;
+  align-items: center;
+  &__btn {
+    height: 1.6rem;
+    width: 1.6rem;
+    vertical-align: text-bottom;
+    &-wrp {
+      display: inline-block;
+      position: relative;
+      line-height: 1;
+    }
+    &-copied-tip {
+      position: absolute;
+      bottom: calc(100% + 1rem);
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 0.4rem 0.8rem;
+      border-radius: 0.8rem;
+      background: var(--clr__tooltip-bg);
+      color: var(--clr__tooltip-text);
+      line-height: 1.25;
 
-.copy-text__btn {
-  height: 1.6rem;
-  width: 1.6rem;
-  vertical-align: text-bottom;
-}
-
-.copy-text__btn-copied-tip {
-  position: absolute;
-  bottom: calc(100% + 1rem);
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 0.4rem 0.8rem;
-  border-radius: 0.8rem;
-  background: var(--clr__tooltip-bg);
-  color: var(--clr__tooltip-text);
-  line-height: 1.25;
-
-  &:before {
-    content: '';
-    display: block;
-    width: 0.8rem;
-    height: 0.8rem;
-    position: absolute;
-    bottom: -0.4rem;
-    left: 50%;
-    transform: translateX(-50%) rotate(45deg);
-    background: var(--clr__tooltip-bg);
+      &:before {
+        content: '';
+        display: block;
+        width: 0.8rem;
+        height: 0.8rem;
+        position: absolute;
+        bottom: -0.4rem;
+        left: 50%;
+        transform: translateX(-50%) rotate(45deg);
+        background: var(--clr__tooltip-bg);
+      }
+    }
   }
 }
 </style>

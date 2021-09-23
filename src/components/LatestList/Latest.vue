@@ -25,18 +25,16 @@
                 <template #validator>
                   <span>Validator:</span>
                   <TitledLink
-                    :link="`/transactions/${item.header.height}`"
+                    :link="`/validators/${item.header.height}`"
                     class="app-table__cell-txt"
                     :text="`${cropText(
                       '0x' + toHexFunc(item.header.validatorsHash).toUpperCase()
                     )}`"
                   />
                 </template>
-                <!-- TODO: transactions count -->
                 <template #transactions>
-                  <span>548 transactions</span>
+                  <span>{{ item.total_tx }} transactions</span>
                 </template>
-                <!-- TODO: what is block_size  -->
               </LatestListItem>
             </template>
             <div class="latest-list-item" v-else>
@@ -49,44 +47,42 @@
             <template v-if="latestTransactions.length">
               <LatestListItem
                 v-for="item in latestTransactions"
-                :key="item.transHash"
+                :key="item.hash"
               >
                 <template #label> Tx </template>
                 <template #name>
                   <TitledLink
                     class="app-table__cell-txt"
-                    :link="`/blocks/${item.transHeight}`"
-                    :text="
-                      item.transHash
-                        ? cropText(`0x${item.transSender}`)
-                        : 'No info'
-                    "
+                    :link="`/transactions/${item.block}/${item.hash}`"
+                    :text="item.hash ? cropText(`0x${item.hash}`) : 'No info'"
                   />
                 </template>
                 <template #time>
-                  {{ diffDays(toDay, getDay(item.transTime)) }}
+                  {{ diffDays(toDay, getDay(item.time)) }}
                 </template>
                 <template #from>
                   <span>From:</span>
-                  <TitledLink
-                    class="app-table__cell-txt"
-                    :text="
-                      item.transSender
-                        ? cropText(`0x${item.transSender}`)
-                        : 'No info'
-                    "
-                  />
+                  <router-link :to="`/account/${item.sender}`">
+                    <TitledLink
+                      class="app-table__cell-txt"
+                      :text="
+                        item.sender ? cropText(`0x${item.sender}`) : 'No info'
+                      "
+                    />
+                  </router-link>
                 </template>
                 <template #to>
                   <span> To: </span>
-                  <TitledLink
-                    class="app-table__cell-txt"
-                    :text="
-                      item.transReceiver
-                        ? cropText(`0x${item.transReceiver}`)
-                        : 'No info'
-                    "
-                  />
+                  <router-link :to="`/account/${item.receiver}`">
+                    <TitledLink
+                      class="app-table__cell-txt"
+                      :text="
+                        item.receiver
+                          ? cropText(`0x${item.receiver}`)
+                          : 'No info'
+                      "
+                    />
+                  </router-link>
                 </template>
               </LatestListItem>
             </template>
@@ -103,17 +99,14 @@
 <script lang="ts">
 import { defineComponent, onMounted, ref } from 'vue'
 import { callers } from '@/api/callers'
-import { toHex } from '@cosmjs/encoding'
 import { diffDays, cropText, getDay } from '@/helpers/formatters'
-import {
-  makeTransactionListFormatted,
-  TransactionListFormatted,
-} from '@/helpers/makeTransactionListFormatted'
 
 import LatestList from '@/components/LatestList/LatestList.vue'
 import LatestListItem from '@/components/LatestList/LatestListItem.vue'
 import TitledLink from '@/components/TitledLink.vue'
-import { BlockMeta } from '@cosmjs/tendermint-rpc'
+import { prepareTransaction, toHexFunc } from '@/helpers/helpers'
+import { adjustedData, latestBlocksInterface } from '@/helpers/Types'
+import { handleError } from '@/helpers/errors'
 
 export default defineComponent({
   name: 'Latest',
@@ -122,30 +115,50 @@ export default defineComponent({
     const toDay = ref<Date>(new Date())
 
     onMounted(async (): Promise<void> => {
-      await getLatestBlocks()
-      await getLatestTransactions()
+      try {
+        await getLatestBlocks()
+        await getLatestTransactions()
+      } catch (e) {
+        console.error(e.message)
+        handleError(e)
+      }
     })
 
-    let latestBlocks = ref<Array<BlockMeta> | null>([])
-    let latestTransactions = ref<Array<TransactionListFormatted> | null>([])
+    let latestBlocks = ref<Array<latestBlocksInterface> | null>([])
+    let latestTransactions = ref<Array<adjustedData> | null>([])
     let lastHeight = ref<number>(0)
     let totalCount = ref<number>()
 
     const getLatestBlocks = async (): Promise<void> => {
       const { blockMetas, lastHeight: reqLastHeight } =
         await callers.getBlockchain(100)
-      latestBlocks.value = [...blockMetas].slice(0, 5)
-      console.debug('latestBlocks', latestBlocks.value)
+      let tempA: Array<latestBlocksInterface> = []
+      for (let b of [...blockMetas].slice(0, 5)) {
+        tempA = [
+          ...tempA,
+          {
+            ...b,
+            total_tx: await callers
+              .getBlock(b?.header?.height)
+              .then((res) => res?.block?.txs?.length),
+          },
+        ]
+      }
+      latestBlocks.value = tempA
+
+      console.debug('latestBlocks.value', latestBlocks.value)
+
       lastHeight.value = reqLastHeight
     }
     const getLatestTransactions = async (): Promise<void> => {
       const { totalCount: reqTotalCount, txs } = await callers.getTxSearch({
-        // query: `tx.height >= ${500 - 5}`,
         query: `tx.height >= ${lastHeight.value - 100000}`,
       })
-      latestTransactions.value = await makeTransactionListFormatted(
-        [...txs].slice(0, 5)
+
+      latestTransactions.value = await prepareTransaction(txs).then((pt) =>
+        pt.slice(0, 5)
       )
+
       console.debug('latestTransactions', latestTransactions.value)
       totalCount.value = reqTotalCount
     }
@@ -161,7 +174,6 @@ export default defineComponent({
       linkDataText: 'Transactions',
     }
 
-    const toHexFunc: (data: Uint8Array) => string = toHex
     return {
       latestBlocksHeader,
       latestBlocks,

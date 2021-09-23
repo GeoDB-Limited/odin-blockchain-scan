@@ -35,7 +35,7 @@
 </template>
 
 <script lang="ts">
-import { toHex } from '@cosmjs/encoding'
+import { toHexFunc } from '@/helpers/helpers'
 import { defineComponent, ref } from 'vue'
 import { diffDays, cropText, getDay } from '@/helpers/formatters'
 import TitledLink from '@/components/TitledLink.vue'
@@ -47,7 +47,6 @@ export default defineComponent({
   setup() {
     const toDay = ref<Date>(new Date())
 
-    const toHexFunc: (data: Uint8Array) => string = toHex
     return { toDay, diffDays, cropText, getDay, toHexFunc }
   },
 })

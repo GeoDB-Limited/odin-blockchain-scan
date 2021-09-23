@@ -73,7 +73,7 @@ import { Router, useRouter } from 'vue-router'
 import BlockResultItem from '@/components/SearchBar/BlockResultItem.vue'
 import TransactionItem from '@/components/SearchBar/TransactionItem.vue'
 import AccountItem from '@/components/SearchBar/AccountItem.vue'
-import { SearchResultType } from '@/helpers/Types'
+import {SearchResultType, TempSearchAccountInfoType} from '@/helpers/Types'
 import {
   makeTransactionListFormatted,
   TransactionListFormatted,
@@ -114,7 +114,7 @@ export default defineComponent({
       }
     }
 
-    const getAccount = async () => {
+    const getAccount = async (): Promise<Array<TempSearchAccountInfoType>> => {
       try {
         const geoBalance = await callers.getUnverifiedBalances(
           searchedText.value as string,
@@ -136,7 +136,7 @@ export default defineComponent({
       }
     }
 
-    const getBlock = async () => {
+    const getBlock = async (): Promise<Array<BlockResponse>> => {
       try {
         return [
           (await callers.getBlock(Number(searchedText.value))) as BlockResponse,
@@ -163,7 +163,6 @@ export default defineComponent({
             },
           ])
         }
-
         if (activeFilter.value === 'Account Address') {
           return [
             {

@@ -67,3 +67,26 @@
 .fade-leave-to {
   opacity: 0;
 }
+
+.empty {
+  grid-column-start: 1;
+  grid-column-end: -1;
+  color: var(--clr__input-border);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 3.2rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.block-id {
+  font-size: 24px;
+  font-weight: 400;
+
+  @media screen and (max-width: 1500px) {
+    text-overflow: ellipsis;
+    max-width: 250px;
+    overflow: hidden;
+    display: block;
+  }
+}

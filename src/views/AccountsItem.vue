@@ -63,9 +63,9 @@
             <span class="app-table__cell-txt"> Transaction fee </span>
           </div>
         </div>
-        <template v-if="prepareTransaction?.length">
+        <template v-if="transactions?.length">
           <div
-            v-for="(item, index) in prepareTransaction"
+            v-for="(item, index) in transactions"
             :key="index"
             class="data-sources__table-row app-table__row validators-row"
           >
@@ -163,12 +163,11 @@ import {
 import { routerBack } from '@/router'
 import { callers } from '@/api/callers'
 import { convertToTxTime } from '@/helpers/dates'
-import { copyValue } from '@/helpers/helpers'
+import { copyValue, prepareTransaction } from '@/helpers/helpers'
 
 import TitledLink from '@/components/TitledLink.vue'
-import { Bech32, toHex } from '@cosmjs/encoding'
+import { Bech32 } from '@cosmjs/encoding'
 import { bigMath } from '@/helpers/bigMath'
-import { getDateFromMessage } from '@/helpers/decodeMessage'
 import { handleError } from '@/helpers/errors'
 
 export default defineComponent({
@@ -177,14 +176,10 @@ export default defineComponent({
     const router: Router = useRouter()
     const route: RouteLocationNormalizedLoaded = useRoute()
 
-    const blocks = ref()
-    const geoBalance = ref()
-    const odinBalance = ref()
-    const prepareTransaction = ref()
-    const toHexFunc: (data: Uint8Array) => string = toHex
+    const geoBalance = ref<string>()
+    const odinBalance = ref<string>()
+    const transactions = ref()
     const totalTxCount = ref<number>()
-
-    prepareTransaction.value = []
 
     const getTotalAmount = async (
       validatorAddress: string,
@@ -200,7 +195,7 @@ export default defineComponent({
           'odin',
           Bech32.decode(route.params.hash as string).data
         )
-        console.log(
+        console.debug(
           'message.sender',
           await callers.getTxSearch({
             query: `message.sender='${validatorAddress}'`,
@@ -213,28 +208,9 @@ export default defineComponent({
 
         geoBalance.value = await getTotalAmount(validatorAddress, 'minigeo')
         odinBalance.value = await getTotalAmount(validatorAddress, 'loki')
+        transactions.value = await prepareTransaction(txs)
 
-        if (txs.length > 0) {
-          for (const tx of txs) {
-            const { receiver, sender, type, amount, time, fee } =
-              await getDateFromMessage(tx)
-
-            prepareTransaction.value = [
-              ...prepareTransaction.value,
-              {
-                type: type ? type : '-',
-                hash: toHexFunc(tx.hash) ?? '-',
-                block: tx.height ?? '-',
-                time: time ? time : null,
-                sender: sender ? sender : '',
-                receiver: receiver ? receiver : '',
-                amount: amount ? amount : '',
-                fee: fee ? fee : '-',
-              },
-            ]
-          }
-          totalTxCount.value = totalCount
-        }
+        totalTxCount.value = totalCount
       } catch (e) {
         console.error(e)
         handleError(e)
@@ -253,8 +229,7 @@ export default defineComponent({
       router,
       copyValue,
       convertToTxTime,
-      blocks,
-      prepareTransaction,
+      transactions,
       totalTxCount,
     }
   },

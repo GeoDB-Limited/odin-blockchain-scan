@@ -1,6 +1,7 @@
 import { BlockResponse } from '@cosmjs/tendermint-rpc/build/tendermint34/responses'
 import { TransactionListFormatted } from '@/helpers/makeTransactionListFormatted'
 import { Coin } from '@provider/codec/cosmos/base/v1beta1/coin'
+import { BlockMeta } from '@cosmjs/tendermint-rpc'
 
 export type Link = {
   to?: string
@@ -74,11 +75,18 @@ export type TempBalanceType = {
 
 export type adjustedData = {
   voter?: string
-  type?: string
+  type: string
+  hash?: string
+  block?: string | number | undefined
   delegatorAddress?: string
-  time?: Date | undefined | string
+  time?: Date | string | null
   sender?: string
   receiver?: string
-  amount?: string | Coin | Array<Coin> | undefined
+  amount?: string
   fee?: string
+  status?: number | string | undefined
+}
+
+export interface latestBlocksInterface extends BlockMeta {
+  total_tx: string | number
 }

@@ -90,7 +90,7 @@
 
 <script lang="ts">
 import { callers } from '@/api/callers'
-import { toHex } from '@cosmjs/encoding'
+import { toHexFunc } from '@/helpers/helpers'
 import TitledLink from '@/components/TitledLink.vue'
 import { defineComponent, ref, onMounted } from 'vue'
 import VPagination from '@hennge/vue3-pagination'
@@ -106,7 +106,6 @@ export default defineComponent({
     const blocksPerPage = 5
     const page = ref<number>(1)
     const totalPages = ref<number>()
-    const toHexFunc: (data: Uint8Array) => string = toHex
 
     const getBLocks = async (): Promise<void> => {
       const { blockMetas } = await callers.getBlockchain(100, 500)
@@ -133,11 +132,9 @@ export default defineComponent({
       filterBlocks(num)
     }
 
-    onMounted(
-      async (): Promise<void> => {
-        await getBLocks()
-      }
-    )
+    onMounted(async (): Promise<void> => {
+      await getBLocks()
+    })
 
     return {
       blocks,

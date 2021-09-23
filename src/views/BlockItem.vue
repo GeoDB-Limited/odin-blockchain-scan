@@ -146,20 +146,18 @@ export default defineComponent({
     const blockParentHash = ref<string>()
 
     const getBlock = async (): Promise<void> => {
-      blockInfo.value = (await callers.getBlock(
-        +route.params.id
-      )) as BlockResponse
+      blockInfo.value = await callers.getBlock(+route.params.id)
       blockHash.value = getHash(blockInfo.value.blockId.hash)
       blockParentHash.value = getHash(
         blockInfo.value.block.header.lastBlockId.hash
       )
+
+      console.debug(blockInfo.value)
     }
 
-    onMounted(
-      async (): Promise<void> => {
-        await getBlock()
-      }
-    )
+    onMounted(async (): Promise<void> => {
+      await getBlock()
+    })
 
     return {
       blockInfo,

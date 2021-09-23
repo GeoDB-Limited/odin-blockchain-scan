@@ -2,17 +2,15 @@
   <div class="container">
     <div class="block-item">
       <div class="block-item__title">
-        <button class="block-back" @click.prevent="routerBack(router)">
-          <img src="~@/assets/icons/back-arrow.svg" alt="info" />
-        </button>
+        <BackButton :current-router="router" />
         <h1 class="block-name">Transaction</h1>
-        <span class="block-id">{{ transHash }}</span>
-        <div class="copy-button__wrapper">
-          <button class="copy-button" @click.prevent="copyValue(transHash)">
-            <img src="~@/assets/icons/copy.svg" alt="info" />
-          </button>
-          <div class="tooltip">Copy From Transaction Hash to clipboard.</div>
-        </div>
+        <CopyText
+          v-if="transaction?.hash"
+          :text="transaction?.hash"
+          :className="'block-id'"
+          :title="transaction?.hash"
+          :displayText="transaction?.hash"
+        />
       </div>
       <div class="block-chars">
         <h2 class="block-title">Transaction details</h2>
@@ -27,8 +25,7 @@
             </div>
           </div>
           <div class="info-value">
-            <span>{{ convertToTime(transTime) }}</span>
-            <span>&nbsp;{{ convertToDate(transTime) }}</span>
+            <span>{{ convertToTxTime(transaction?.time) }}</span>
           </div>
         </div>
         <div class="data-sources__table-row app-table__row">
@@ -45,9 +42,9 @@
           <div class="info-value text-blue">
             <div
               class="status"
-              :class="transStatus === 0 ? 'success' : 'failed'"
+              :class="transaction?.status === 0 ? 'success' : 'failed'"
             >
-              {{ transStatus === 0 ? 'Success' : 'Failed' }}
+              {{ transaction?.status === 0 ? 'Success' : 'Failed' }}
             </div>
           </div>
         </div>
@@ -64,8 +61,8 @@
             </div>
           </div>
           <div class="info-value">
-            <router-link :to="`/blocks/${transBlock}`">
-              {{ transBlock }}
+            <router-link :to="`/blocks/${transaction?.block}`">
+              {{ transaction?.block }}
             </router-link>
           </div>
         </div>
@@ -81,7 +78,9 @@
             </div>
           </div>
           <div class="info-value">
-            <span class="text-blue">0x{{ transSender }}</span>
+            <router-link :to="`/account/${transaction?.sender}`">
+              {{ transaction?.sender }}
+            </router-link>
           </div>
         </div>
         <div class="data-sources__table-row app-table__row">
@@ -110,9 +109,7 @@
             </div>
           </div>
           <div class="info-value">
-            <span v-for="(fee, index) in transFeeList" :key="index">
-              {{ fee.amount }} {{ fee.denom.toUpperCase() }}
-            </span>
+            {{ transaction?.fee }}
           </div>
         </div>
         <div class="data-sources__table-row app-table__row">
@@ -140,20 +137,14 @@
             </div>
           </div>
           <div class="info-value">
-            <span>{{ transTotal }}</span>
+            <span>{{ transaction?.amount }}</span>
           </div>
         </div>
         <div class="transactions-messages mg-t32">
           <h2 class="block-title mg-b16">Messages</h2>
-          <div
-            class="transactions-messages__container"
-            v-for="(message, index) in transMessagesList"
-            :key="index"
-          >
+          <div class="transactions-messages__container">
             <h3>
-              {{
-                message.typeUrl === '/cosmos.bank.v1beta1.MsgSend' ? 'Send' : ''
-              }}
+              {{ transaction?.type }}
             </h3>
             <div class="data-sources__table-row app-table__row">
               <div class="info-key">
@@ -164,20 +155,9 @@
                 </div>
               </div>
               <div class="info-value">
-                <span class="text-blue"
-                  >0x{{ message.value.fromAddress.toUpperCase() }}</span
-                >
-                <div class="copy-button__wrapper">
-                  <button
-                    class="copy-button"
-                    @click.prevent="
-                      copyValue('0x' + message.value.fromAddress.toUpperCase())
-                    "
-                  >
-                    <img src="~@/assets/icons/copy.svg" alt="info" />
-                  </button>
-                  <div class="tooltip">Copy From From Hash to clipboard.</div>
-                </div>
+                <router-link :to="`/account/${transaction?.sender}`">
+                  {{ transaction?.sender }}
+                </router-link>
               </div>
             </div>
             <div class="data-sources__table-row app-table__row">
@@ -189,20 +169,9 @@
                 </div>
               </div>
               <div class="info-value">
-                <span class="text-blue"
-                  >0x{{ message.value.toAddress.toUpperCase() }}</span
-                >
-                <div class="copy-button__wrapper">
-                  <button
-                    class="copy-button"
-                    @click.prevent="
-                      copyValue('0x' + message.value.toAddress.toUpperCase())
-                    "
-                  >
-                    <img src="~@/assets/icons/copy.svg" alt="info" />
-                  </button>
-                  <div class="tooltip">Copy From To Hash to clipboard.</div>
-                </div>
+                <router-link :to="`/account/${transaction?.receiver}`">
+                  {{ transaction?.receiver }}
+                </router-link>
               </div>
             </div>
             <div class="data-sources__table-row app-table__row">
@@ -214,7 +183,7 @@
                 </div>
               </div>
               <div class="info-value">
-                <span>{{ transTotal }}</span>
+                <span>{{ transaction?.amount }}</span>
               </div>
             </div>
           </div>
@@ -233,38 +202,27 @@ import {
   useRouter,
 } from 'vue-router'
 import { routerBack } from '@/router'
-
 import { callers } from '@/api/callers'
-import { Tx } from '@cosmjs/stargate/build/codec/cosmos/tx/v1beta1/tx'
-import { MsgSend } from '@cosmjs/stargate/build/codec/cosmos/bank/v1beta1/tx'
-import { toHex } from '@cosmjs/encoding'
-import { API_CONFIG } from '@/api/api-config'
-
-import { convertToTime, convertToDate } from '@/helpers/dates'
-import { copyValue } from '@/helpers/helpers'
-import { Coin } from '@provider/codec/cosmos/base/v1beta1/coin'
 import { ReadonlyDateWithNanoseconds } from '@cosmjs/tendermint-rpc/build/dates'
+import { adjustedData } from '@/helpers/Types'
+import { convertToTxTime } from '@/helpers/dates'
+import { copyValue, prepareTransaction } from '@/helpers/helpers'
+import { getDecodeTx } from '@/helpers/decodeMessage'
+import CopyText from '@/components/CopyText.vue'
+import BackButton from '@/components/BackButton.vue'
 
 export default defineComponent({
   name: 'TransactionsItem',
+  components: { CopyText, BackButton },
   setup() {
     const router: Router = useRouter()
     const route: RouteLocationNormalizedLoaded = useRoute()
 
-    const transInfo = ref()
-    const transBlock = ref<number>()
-    const transHash = ref<string>()
-    const transStatus = ref<number>()
     const transMemo = ref<string | undefined>()
     const transUsed = ref<number>()
     const transWanted = ref<number>()
-    const transSender = ref<string>()
     const transTime = ref<ReadonlyDateWithNanoseconds>()
-    const transTotal = ref<number>()
-    const transFeeList = ref<Array<Coin> | undefined>()
-    const transMessagesList = ref<void | Array<
-      { value: MsgSend; typeUrl: string } | undefined
-    >>()
+    const transaction = ref<adjustedData>()
 
     const getTransaction = async (): Promise<void> => {
       const { txs } = await callers.getTxSearch({
@@ -276,58 +234,21 @@ export default defineComponent({
         Number(route.params.height)
       )
       transTime.value = blockMetas[0].header.time
-
-      const decodedTx: Tx = Tx.decode(txs[0].tx)
-
-      transHash.value = toHex(txs[0].hash).toUpperCase()
-      transBlock.value = txs[0].height
-      transStatus.value = txs[0].result.code
-      transFeeList.value = decodedTx?.authInfo?.fee?.amount
+      const decodedTx = getDecodeTx(txs[0].tx)
+      await prepareTransaction(txs).then((tx) => {
+        transaction.value = { ...tx[0], status: txs[0].result.code }
+      })
       transMemo.value = decodedTx?.body?.memo
+      const {
+        data: {
+          result: {
+            tx_result: { gas_wanted, gas_used },
+          },
+        },
+      } = await callers.getTxForTxDetailsPage(transaction.value?.hash as string)
 
-      if (decodedTx?.authInfo?.signerInfos[0]?.publicKey?.value) {
-        transSender.value = toHex(
-          decodedTx?.authInfo?.signerInfos[0]?.publicKey?.value
-        ).toUpperCase()
-      }
-
-      transTotal.value = await getTotalTx(decodedTx)
-
-      await fetch(`${API_CONFIG.rpc}/tx?hash=0x${transHash.value}&prove=true`)
-        .then((res) => res.json())
-        .then((data) => {
-          transUsed.value = data.result.tx_result.gas_used
-          transWanted.value = data.result.tx_result.gas_wanted
-        })
-
-      transMessagesList.value = await getMessages(decodedTx)
-    }
-
-    const getMessages = async (
-      decodedTx: Tx
-    ): Promise<void | Array<{ value: MsgSend; typeUrl: string }>> => {
-      const filteredDecodedMessages = decodedTx?.body?.messages.filter(
-        (item) => item.typeUrl === '/cosmos.bank.v1beta1.MsgSend'
-      )
-      if (!filteredDecodedMessages) return
-
-      return filteredDecodedMessages.map((item) => {
-        return { ...item, value: MsgSend.decode(item.value) }
-      })
-    }
-
-    const getTotalTx = async (decodedTx: Tx): Promise<number> => {
-      let totalTx = 0
-      const tempDecodedMessages = decodedTx?.body?.messages.filter(
-        (item) => item.typeUrl === '/cosmos.bank.v1beta1.MsgSend'
-      )
-      tempDecodedMessages?.forEach((m) => {
-        const msgValue = MsgSend.decode(m.value)
-        if (!msgValue) return
-        totalTx += +msgValue.amount[0].amount
-      })
-
-      return totalTx
+      transWanted.value = gas_wanted
+      transUsed.value = gas_used
     }
 
     onMounted(async (): Promise<void> => {
@@ -335,22 +256,14 @@ export default defineComponent({
     })
 
     return {
-      transInfo,
+      transaction,
       route,
       router,
-      transStatus,
-      transHash,
-      transBlock,
-      transFeeList,
       transMemo,
       transWanted,
       transUsed,
-      transMessagesList,
-      transSender,
       transTime,
-      transTotal,
-      convertToTime,
-      convertToDate,
+      convertToTxTime,
       routerBack,
       copyValue,
     }
@@ -415,17 +328,6 @@ a {
         display: block;
         margin-right: 9px;
       }
-    }
-  }
-
-  &-id {
-    font-size: 24px;
-    font-weight: 400;
-
-    @media screen and (max-width: 1500px) {
-      text-overflow: ellipsis;
-      max-width: 250px;
-      overflow: hidden;
     }
   }
 

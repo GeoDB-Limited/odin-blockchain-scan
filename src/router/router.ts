@@ -144,10 +144,10 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/TopAccounts.vue'),
   },
   {
-    path: '/top_accounts/:hash/',
-    name: 'TopAccountsItem',
+    path: '/account/:hash/',
+    name: 'AccountsItem',
     // beforeEnter: authorizedOnlyGuard,
-    component: () => import('../views/TopAccountsItem.vue'),
+    component: () => import('../views/AccountsItem.vue'),
   },
 ]
 

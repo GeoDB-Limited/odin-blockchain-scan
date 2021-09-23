@@ -93,7 +93,6 @@ export default defineComponent({
   &__validator,
   &__to {
     display: flex;
-    align-items: center;
     justify-content: flex-end;
     gap: 0.8rem;
     width: 100%;

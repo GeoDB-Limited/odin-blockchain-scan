@@ -4,8 +4,8 @@
       <h2 class="view-title" title="some blocks">Top accounts</h2>
     </div>
     <div class="mg-b16 mg-t16 accounts-header__wrapper">
-      <p>{{ accounts?.length }} accounts found</p>
-      <!--      <p v-else></p>-->
+      <p v-if="accounts?.length">{{ accounts?.length }} accounts found</p>
+      <p v-else></p>
       <div class="sort-wrapper">
         <span>Sort By</span>
         <VuePicker
@@ -29,31 +29,31 @@
         </VuePicker>
       </div>
     </div>
-    <div class="app-table">
-      <div class="data-sources__table-head app-table__head">
-        <div class="app-table__cell" data-tooltip="">
-          <span class="app-table__cell-txt"> Rank </span>
+    <template v-if="filteredAccounts?.length">
+      <div class="app-table">
+        <div class="data-sources__table-head app-table__head">
+          <div class="app-table__cell" data-tooltip="">
+            <span class="app-table__cell-txt"> Rank </span>
+          </div>
+          <div class="app-table__cell">
+            <span class="app-table__cell-txt"> Address </span>
+          </div>
+          <div class="app-table__cell">
+            <span class="app-table__cell-txt"> GEO balance </span>
+          </div>
+          <div class="app-table__cell">
+            <span class="app-table__cell-txt"> GEO token percentage </span>
+          </div>
+          <div class="app-table__cell">
+            <span class="app-table__cell-txt"> ODIN balance </span>
+          </div>
+          <div class="app-table__cell">
+            <span class="app-table__cell-txt"> ODIN token percentage </span>
+          </div>
+          <div class="app-table__cell">
+            <span class="app-table__cell-txt"> Transaction count </span>
+          </div>
         </div>
-        <div class="app-table__cell">
-          <span class="app-table__cell-txt"> Address </span>
-        </div>
-        <div class="app-table__cell">
-          <span class="app-table__cell-txt"> GEO balance </span>
-        </div>
-        <div class="app-table__cell">
-          <span class="app-table__cell-txt"> GEO token percentage </span>
-        </div>
-        <div class="app-table__cell">
-          <span class="app-table__cell-txt"> ODIN balance </span>
-        </div>
-        <div class="app-table__cell">
-          <span class="app-table__cell-txt"> ODIN token percentage </span>
-        </div>
-        <div class="app-table__cell">
-          <span class="app-table__cell-txt"> Transaction count </span>
-        </div>
-      </div>
-      <template v-if="filteredAccounts?.length">
         <AccountsLine
           v-for="(item, index) in filteredAccounts"
           :key="index"
@@ -62,25 +62,23 @@
           :totalGeo="totalGeo"
           :rank="(+currentPage - 1) * +ITEMS_PER_PAGE + (index + 1)"
         />
-      </template>
-      <template v-else>
-        <div class="app-table__row">
-          <p class="app-table__empty-stub">No items yet</p>
-        </div>
-      </template>
-    </div>
-    <div class="pagination-wrapper mg-t32">
-      <v-pagination
-        v-model="currentPage"
-        :pages="totalPages"
-        :range-size="1"
-        active-color="#007bff"
-        @update:modelValue="filterAccounts"
-        :hideFirstButton="true"
-        :hideLastButton="true"
-      >
-      </v-pagination>
-    </div>
+      </div>
+      <div class="pagination-wrapper mg-t32">
+        <v-pagination
+          v-model="currentPage"
+          :pages="totalPages"
+          :range-size="1"
+          active-color="#007bff"
+          @update:modelValue="filterAccounts"
+          :hideFirstButton="true"
+          :hideLastButton="true"
+        >
+        </v-pagination>
+      </div>
+    </template>
+    <template v-else>
+      <div class="empty">Waiting to receive data</div>
+    </template>
   </div>
 </template>
 

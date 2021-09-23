@@ -1,12 +1,12 @@
 <template>
-  <div class="blocks-container">
-    <div class="data-sources view-main">
-      <div class="mg-b16 mg-t32">
-        <h2 class="view-title">Transactions</h2>
-      </div>
-      <div class="mg-b16 mg-t16">
-        <p>{{ totalTransactions }} transactions found</p>
-      </div>
+  <div class="container">
+    <div class="mg-b16 mg-t32">
+      <h2 class="view-title">Transactions</h2>
+    </div>
+    <div class="mg-b16 mg-t16" v-if="filteredTransactions?.length">
+      <p>{{ totalTransactions }} transactions found</p>
+    </div>
+    <template v-if="filteredTransactions?.length">
       <div class="app-table">
         <div class="data-sources__table-head app-table__head">
           <div class="app-table__cell">
@@ -34,23 +34,13 @@
             <span class="app-table__cell-txt"> Transaction Fee </span>
           </div>
         </div>
-        <template v-if="filteredTransactions?.length">
-          <TransitionLine
-            v-for="(item, index) in filteredTransactions"
-            :key="index"
-            :transition="item"
-          />
-        </template>
-        <template v-else>
-          <div class="app-table__row">
-            <p class="app-table__empty-stub">No items yet</p>
-          </div>
-        </template>
+        <TransitionLine
+          v-for="(item, index) in filteredTransactions"
+          :key="index"
+          :transition="item"
+        />
       </div>
-      <div
-        v-if="filteredTransactions?.length"
-        class="pagination-wrapper mg-t32"
-      >
+      <div class="pagination-wrapper mg-t32">
         <v-pagination
           v-model="page"
           :pages="totalPages"
@@ -62,7 +52,10 @@
         >
         </v-pagination>
       </div>
-    </div>
+    </template>
+    <template v-else>
+      <div class="empty">Waiting to receive data</div>
+    </template>
   </div>
 </template>
 
@@ -72,62 +65,51 @@ import TransitionLine from '@/components/TransitionLine.vue'
 import { defineComponent, ref, onMounted } from 'vue'
 import VPagination from '@hennge/vue3-pagination'
 import '@hennge/vue3-pagination/dist/vue3-pagination.css'
-import { useRoute } from 'vue-router'
+import { handleError } from '@/helpers/errors'
+import { prepareTransaction } from '@/helpers/helpers'
 
 export default defineComponent({
   name: 'Transactions',
   components: { VPagination, TransitionLine },
   setup() {
+    const ITEMS_PER_PAGE = 5
     const transactions = ref()
     const filteredTransactions = ref()
-    const transactionsPerPage = 5
-    const page = ref(1)
-    const totalPages = ref()
-    const route = useRoute()
-    const totalTransactions = ref()
+    const page = ref<number>(1)
+    const totalPages = ref<number>()
+    const totalTransactions = ref<number>()
     let lastHeight = 500
 
     const getTransactions = async () => {
-      const client = await callers.getClient()
-
-      // if (!route.params.height) {
-      //   await client.abciInfo().then((res) => {
-      //     if (res && res.lastBlockHeight) {
-      //       lastHeight = +res.lastBlockHeight
-      //     }
-      //   })
-      // } else {
-      //   lastHeight = +route.params.height
-      // }
-
-      // TODO: data
-
-      await client
-        .txSearch({ query: `tx.height >= ${lastHeight - 10}` })
-        .then((res) => {
-          totalTransactions.value = res.totalCount
-          transactions.value = res.txs
-          totalPages.value = Math.ceil(
-            transactions.value.length / transactionsPerPage
-          )
+      try {
+        const { txs } = await callers.getTxSearch({
+          query: `tx.height >= ${lastHeight - 10}`,
         })
-        .then(() => filterTransactions(page.value))
+
+        transactions.value = await prepareTransaction(txs)
+
+        totalTransactions.value = transactions.value.length
+        totalPages.value = Math.ceil(transactions.value.length / ITEMS_PER_PAGE)
+
+        await filterTransactions(page.value)
+      } catch (e) {
+        console.error(e.message)
+        handleError(e)
+      }
     }
 
-    const filterTransactions = async (newPage: number) => {
+    const filterTransactions = async (newPage: number): Promise<void> => {
       let tempArr = transactions.value
-
       if (newPage === 1) {
-        filteredTransactions.value = tempArr.slice(
-          0,
-          newPage * transactionsPerPage
-        )
+        filteredTransactions.value = tempArr?.slice(0, newPage * ITEMS_PER_PAGE)
       } else {
-        filteredTransactions.value = tempArr.slice(
-          (newPage - 1) * transactionsPerPage,
-          (newPage - 1) * transactionsPerPage + transactionsPerPage
+        filteredTransactions.value = tempArr?.slice(
+          (newPage - 1) * ITEMS_PER_PAGE,
+          (newPage - 1) * ITEMS_PER_PAGE + ITEMS_PER_PAGE
         )
       }
+
+      console.debug('filteredTransactions.value', filteredTransactions.value)
       page.value = newPage
     }
 

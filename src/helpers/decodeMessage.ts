@@ -6,13 +6,19 @@ import {
   MsgUndelegate,
 } from '@cosmjs/stargate/build/codec/cosmos/staking/v1beta1/tx'
 import { MsgSend } from '@cosmjs/stargate/build/codec/cosmos/bank/v1beta1/tx'
+import {
+  MsgActivate,
+  MsgAddReporter,
+  MsgCreateDataSource,
+  MsgCreateOracleScript,
+} from '@provider/codec/oracle/v1/tx'
 import { callers } from '@/api/callers'
-import { ReadonlyDateWithNanoseconds } from '@cosmjs/tendermint-rpc/build/dates'
 import { Tx } from '@cosmjs/stargate/build/codec/cosmos/tx/v1beta1/tx'
+import { ReadonlyDateWithNanoseconds } from '@cosmjs/tendermint-rpc/build/dates'
 import { TxResponse } from '@cosmjs/tendermint-rpc/build/tendermint34/responses'
 import { adjustedData } from '@/helpers/Types'
 
-const getDecodeTx = (tx) => Tx.decode(tx)
+export const getDecodeTx = (tx: TxResponse['tx']): Tx => Tx.decode(tx)
 
 const getTime = async (
   height: number
@@ -44,6 +50,18 @@ export function humanizeMessageType(type: string): string {
     case '/cosmos.staking.v1beta1.MsgUndelegate':
       return 'Undelegate'
 
+    case '/oracle.v1.MsgActivate':
+      return 'Activate'
+
+    case '/oracle.v1.MsgCreateDataSource':
+      return 'Create Data Source'
+
+    case '/oracle.v1.MsgCreateOracleScript':
+      return 'Create Oracle Script'
+
+    case '/oracle.v1.MsgAddReporter':
+      return 'Add Reporter'
+
     default:
       throw new ReferenceError(`Unknown type ${type}`)
   }
@@ -58,7 +76,11 @@ function decodeMessage(obj: {
   | MsgDelegate
   | MsgUndelegate
   | MsgSend
-  | MsgVote {
+  | MsgVote
+  | MsgAddReporter
+  | MsgActivate
+  | MsgCreateOracleScript
+  | MsgCreateDataSource {
   switch (obj.typeUrl) {
     case '/mint.MsgWithdrawCoinsToAccFromTreasury':
       return MsgWithdrawCoinsToAccFromTreasury.decode(obj.value)
@@ -78,6 +100,18 @@ function decodeMessage(obj: {
     case '/cosmos.bank.v1beta1.MsgSend':
       return MsgSend.decode(obj.value)
 
+    case '/oracle.v1.MsgActivate':
+      return MsgActivate.decode(obj.value)
+
+    case '/oracle.v1.MsgCreateDataSource':
+      return MsgCreateDataSource.decode(obj.value)
+
+    case '/oracle.v1.MsgCreateOracleScript':
+      return MsgCreateOracleScript.decode(obj.value)
+
+    case '/oracle.v1.MsgAddReporter':
+      return MsgAddReporter.decode(obj.value)
+
     default:
       throw new ReferenceError(`Unknown type ${obj.typeUrl}`)
   }
@@ -91,13 +125,20 @@ export async function getDateFromMessage(
     value: Uint8Array
   }
   const message = decodeMessage(obj)
-
   const adjustedData: adjustedData = {
     type: humanizeMessageType(obj.typeUrl),
     time: (await getTime(Number(tx.height))) as Date,
     fee: getDecodeTx(tx.tx)?.authInfo?.fee?.amount[0]?.amount,
   }
-
+  if ('amount' in message) {
+    if (typeof message.amount === 'object') {
+      if ('denom' in message.amount && 'amount' in message.amount) {
+        adjustedData.amount = `${message.amount?.amount} ${message.amount?.denom}`
+      } else {
+        adjustedData.amount = `${message.amount[0]?.amount} ${message.amount[0]?.denom}`
+      }
+    }
+  }
   if ('voter' in message) {
     adjustedData.sender = message?.voter
   }
@@ -117,14 +158,6 @@ export async function getDateFromMessage(
       adjustedData.receiver = ''
     }
   }
-  if (adjustedData.type === 'Create Validator') {
-    if ('delegatorAddress' in message) {
-      adjustedData.sender = message?.delegatorAddress
-    }
-    if ('value' in message) {
-      adjustedData.amount = `${message?.value?.amount} ${message?.value?.denom}`
-    }
-  }
   if (adjustedData.type === 'Send') {
     if ('fromAddress' in message) {
       adjustedData.sender = message?.fromAddress
@@ -133,12 +166,16 @@ export async function getDateFromMessage(
       adjustedData.receiver = message?.toAddress
     }
   }
-  if ('amount' in message) {
-    if (typeof message.amount === 'object') {
-      if ('denom' in message.amount && 'amount' in message.amount)
-        adjustedData.amount = `${message.amount?.amount} ${message.amount.denom}`
+  if (adjustedData.type === 'Withdraw') {
+    if ('sender' in message) {
+      adjustedData.sender = message?.sender
+    }
+    if ('receiver' in message) {
+      adjustedData.receiver = message?.receiver
     }
   }
+
+  console.debug(adjustedData.type)
 
   return adjustedData
 }
