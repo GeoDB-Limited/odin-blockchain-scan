@@ -30,21 +30,21 @@
         <template v-if="searchResult">
           <div class="search__dropdown">
             <template v-for="result in searchResult">
-              <template v-if="result.blocks.length !== 0">
+              <template v-if="result.blocks">
                 <BlockResultItem
                   v-for="block in result.blocks"
                   :result="block"
                   :key="block.block.header.height"
                 />
               </template>
-              <template v-if="result.transactions.length !== 0">
+              <template v-if="result.transactions">
                 <TransactionItem
                   v-for="transaction in result.transactions"
                   :result="transaction"
                   :key="transaction.height"
                 />
               </template>
-              <template v-if="result.accounts.length !== 0">
+              <template v-if="result.accounts">
                 <AccountItem
                   v-for="accounts in result.accounts"
                   :result="accounts"
@@ -175,13 +175,13 @@ export default defineComponent({
             },
           ]
         }
-        searchResult.value = [
+        return (searchResult.value = [
           {
             blocks: await getBlock(),
             transactions: await getTransactions(),
             accounts: await getAccount(),
           },
-        ]
+        ])
       } catch (e) {
         console.error(e.message)
         handleError(e)

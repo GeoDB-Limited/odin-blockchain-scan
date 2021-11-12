@@ -55,6 +55,7 @@ import {
 import { handleError } from '@/helpers/errors'
 import BackButton from '@/components/BackButton.vue'
 import LineChartD3 from '@/components/Charts/LineChartd3.vue'
+import { callers } from '@/api/callers'
 
 export default defineComponent({
   name: 'DailyTransactionsVolumeChart',
@@ -92,23 +93,15 @@ export default defineComponent({
 
       console.debug('getDataByDays', days)
 
-      // const endDate = new Date()
-      // const startDate = new Date()
+      const endDate = new Date()
+      const startDate = new Date()
+      startDate.setDate(startDate.getDate() - 2)
+
       isLoading.value = true
       try {
-        // const queryTxVolumeResponseList = withoutDuplicates(
-        //   await requestByDays({ startDate, endDate }, callers.getTxVolume, days)
-        // )
-        // const { txVolumePerDay } = await requestByDays(
-        //   { startDate, endDate },
-        //   callers.getTxVolume,
-        //   days
-        // )
-        // const { txVolumePerDay } = await callers.getTxVolume({
-        //   startDate,
-        //   endDate,
-        // })
-        // txVolumePerDay.forEach((el) => {
+        console.log(await callers.getTxVolumePerDays(startDate, endDate))
+        console.log(await callers.getTxVolume({ startDate, endDate }))
+
         isLoading.value = false
       } catch (error) {
         handleError(error)

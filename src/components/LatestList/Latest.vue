@@ -105,7 +105,6 @@ import TitledLink from '@/components/TitledLink.vue'
 import { prepareTransaction, toHexFunc } from '@/helpers/helpers'
 import { adjustedData, blocksWithTotalTxInterface } from '@/helpers/Types'
 import { handleError } from '@/helpers/errors'
-import { BlockResponse } from '@cosmjs/tendermint-rpc'
 
 export default defineComponent({
   name: 'Latest',

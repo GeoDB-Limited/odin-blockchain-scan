@@ -19,6 +19,7 @@ import {
   MsgUndelegate,
 } from '@cosmjs/stargate/build/codec/cosmos/staking/v1beta1/tx'
 import { Tendermint34Client } from '@cosmjs/tendermint-rpc'
+import axios from 'axios'
 
 const makeCallers = () => {
   const broadcaster = api.makeBroadcastCaller.bind(api)
@@ -155,6 +156,17 @@ const makeCallers = () => {
     getTxVolume: cacheAnswers(
       querier((qc) => qc.telemetry.unverified.txVolume)
     ),
+    getTxVolumePerDays: (start_time: Date, end_time: Date) => {
+      return axios.get(
+        `http://localhost:8100/telemetry/blocks/txVolumePerDays`,
+        {
+          params: {
+            start_time,
+            end_time,
+          },
+        }
+      )
+    },
     getTopBalances: cacheAnswers(
       querier((qc) => qc.telemetry.unverified.topBalances)
     ),

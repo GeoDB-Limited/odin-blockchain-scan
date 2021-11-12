@@ -12,6 +12,8 @@ import {
   MsgCreateDataSource,
   MsgCreateOracleScript,
 } from '@provider/codec/oracle/v1/tx'
+import { MsgWithdrawDelegatorReward } from '@cosmjs/stargate/build/codec/cosmos/distribution/v1beta1/tx'
+
 import { callers } from '@/api/callers'
 import { Tx } from '@cosmjs/stargate/build/codec/cosmos/tx/v1beta1/tx'
 import { ReadonlyDateWithNanoseconds } from '@cosmjs/tendermint-rpc/build/dates'
@@ -62,6 +64,9 @@ export function humanizeMessageType(type: string): string {
     case '/oracle.v1.MsgAddReporter':
       return 'Add Reporter'
 
+    case '/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward':
+      return 'Withdraw delegator reward'
+
     default:
       throw new ReferenceError(`Unknown type ${type}`)
   }
@@ -111,6 +116,9 @@ function decodeMessage(obj: {
 
     case '/oracle.v1.MsgAddReporter':
       return MsgAddReporter.decode(obj.value)
+
+    case '/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward':
+      return MsgWithdrawDelegatorReward.decode(obj.value)
 
     default:
       throw new ReferenceError(`Unknown type ${obj.typeUrl}`)
