@@ -103,7 +103,7 @@ export default defineComponent({
     const totalPages = ref<number>()
 
     const getBLocks = async (): Promise<void> => {
-      const { blockMetas } = await callers.getBlockchain(100, 500)
+      const { blockMetas } = await callers.getBlockchain()
       blocks.value = [...blockMetas]
       totalPages.value = Math.ceil(blocks.value.length / blocksPerPage)
       filterBlocks(page.value)

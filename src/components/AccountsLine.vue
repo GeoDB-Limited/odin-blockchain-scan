@@ -77,13 +77,23 @@ export default defineComponent({
     )
     const accountOdinPercentage = computed(() => {
       return bigMath
-        .divide(props.account.odinBalance, props.totalOdin, { decimals: 3 })
+        .multiply(
+          bigMath.divide(props.account.odinBalance, props.totalOdin, {
+            decimals: 3,
+          }),
+          100
+        )
         .toString()
     })
 
     const accountGeoPercentage = computed(() => {
       return bigMath
-        .divide(props.account.geoBalance, props.totalGeo, { decimals: 8 })
+        .multiply(
+          bigMath.divide(props.account.geoBalance, props.totalGeo, {
+            decimals: 8,
+          }),
+          100
+        )
         .toString()
     })
     return {
