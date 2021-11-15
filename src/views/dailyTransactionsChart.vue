@@ -32,7 +32,7 @@
     <transition name="fade" mode="out-in">
       <template v-if="!isLoading">
         <div class="content" v-if="chartData">
-          <LineChartD3 :chart="chartData"></LineChartD3>
+          <LineChartD3 :chart="chartData" />
         </div>
       </template>
       <span class="empty" v-else>

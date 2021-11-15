@@ -106,7 +106,7 @@ export default defineComponent({
     },
   },
   setup: function (props) {
-    const chartEl = ref<HTMLDivElement | null>(null)
+    const chartEl = ref<any | null>(null)
     const tooltipRef = ref<HTMLDivElement | null>(null)
     const isFirstRender = ref<boolean>(true)
     const chart = ref()
@@ -142,11 +142,14 @@ export default defineComponent({
       _clear()
 
       data.value = _normalizedData()
-
       height.value =
-        chartEl?.value?.clientHeight - props.margin.top - props.margin.bottom
+        chartEl?.value?.getBoundingClientRect().height -
+        props.margin.top -
+        props.margin.bottom
       width.value =
-        chartEl?.value?.clientWidth - props.margin.left - props.margin.right
+        chartEl?.value?.getBoundingClientRect().width -
+        props.margin.left -
+        props.margin.right
 
       chart.value = select(chartEl.value)
         .append('svg')
@@ -159,6 +162,7 @@ export default defineComponent({
         .style('-webkit-tap-highlight-color', 'transparent')
         .style('overflow', 'visible')
         .attr('class', 'chart-svg')
+        .attr('preserveAspectRatio', 'xMidYMid meet')
         .attr('width', width.value + props.margin.left + props.margin.right)
         .attr('height', height.value + props.margin.top + props.margin.bottom)
         .attr('preserveAspectRatio', 'xMinYMin')
@@ -183,7 +187,8 @@ export default defineComponent({
           return _timeFormat(d)
         })
         .ticks(data.value.length)
-
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       yAxis.value = axisLeft(_y.value)
 
       yAxisGrid.value = axisLeft(_y.value)

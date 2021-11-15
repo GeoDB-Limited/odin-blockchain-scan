@@ -5,15 +5,15 @@
       <InfoPanelCol :key="'transactionData'" :infoPanelRows="transactionData" />
       <div class="info-panel__chart">
         <div class="info-panel__title">Transactions history statistics</div>
-        <!-- TODO: Will be replaced with a different chart -->
-        <!--
-          <AppChart
-            :key="'chartData'"
-            v-if="chartDataLoad"
-            :chartData="chartData"
-          />
-        -->
-        <span class="info-panel__empty-chart">
+
+        <LineChartD3
+          v-if="chartData"
+          :chart="chartData"
+          :margin="chartMargin"
+          :key="'chartData'"
+        ></LineChartD3>
+
+        <span v-else class="info-panel__empty-chart">
           Insufficient data to visualize
         </span>
       </div>
@@ -26,134 +26,53 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, ref } from 'vue'
-// import AppChart from '@/components/Charts/LineChart.vue'
 import InfoPanelCol from '@/components/InfoPanel/InfoPanelCol.vue'
 import { CoingeckoCoinsType, Link } from '@/helpers/Types'
-// import { callers } from '@/api/callers'
-// import { convertToDayMonth } from '@/helpers/dates'
-// import { bigMath } from '@/helpers/bigMath'
 import { getAPIDate } from '@/helpers/requests'
 import { handleError } from '@/helpers/errors'
+import { callers } from '@/api/callers'
 
+import LineChartD3 from '@/components/Charts/LineChartd3.vue'
 export default defineComponent({
   name: 'InfoPanel',
-  components: { InfoPanelCol },
+  components: { InfoPanelCol, LineChartD3 },
   setup() {
     const priceData = ref<Array<Link> | null>()
     const transactionData = ref<Array<Link> | null>()
     const transactionCount = ref<number>()
     const chartDataLoad = ref(false)
-    /*
-
-    // TODO: Will be replaced with a different chart
-
-  const chartData = ref<ChartDataType>({
-    labels: [],
-    datasets: [
-      {
-        backgroundColor: ['#007bff'],
-        borderColor: ['#007bff'],
-        borderWidth: 2,
-        borderJoinStyle: 'round',
-        borderCapStyle: 'round',
-        tension: 0.5,
-        borderSkipped: false,
-        data: [],
-      },
-    ],
-    options: {
-      maintainAspectRatio: false,
-      scales: {
-        x: {
-          grid: {
-            color: 'transparent',
-            borderColor: '#CCE4FF',
-          },
-          ticks: {
-            padding: 20,
-            color: '#212529',
-            font: {
-              size: 14,
-              family: 'SF Display',
-              lineHeight: 2,
-            },
-          },
-        },
-        y: {
-          grid: {
-            color: '#CCE4FF',
-            borderColor: 'transparent',
-          },
-          ticks: {
-            color: '#212529',
-            padding: 20,
-            font: {
-              size: 14,
-              family: 'SF Display',
-              lineHeight: 2,
-            },
-          },
-        },
-      },
-      elements: {
-        point: {
-          backgroundColor: '#007bff',
-          borderColor: '#007bff',
-          borderWidth: 3,
-          radius: 2,
-        },
-      },
-      plugins: {
-        legend: {
-          display: false,
-        },
-        title: {
-          display: false,
-        },
-        subtitle: {
-          display: false,
-        },
-        tooltip: {
-          enabled: false,
-        },
-        point: {
-          borderWidth: 2,
-        },
-      },
-    },
-  })
-    */
+    const chartData = ref()
+    const chartMargin = ref({
+      top: 10,
+      right: 10,
+      bottom: 21,
+      left: 10,
+    })
 
     const getLatestTelemetry = async (): Promise<void> => {
-      /*
-
-      // TODO: Will be replaced with a different chart
-
       const endDate = new Date()
       const startDate = new Date()
-      startDate.setDate(startDate.getDate() - 2)
+      startDate.setDate(startDate.getDate() - 1)
 
-      const { txVolumePerDay } = await callers.getTxVolume({
-        startDate,
-        endDate,
-      })
+      let tempArr: Array<number> = []
 
-      txVolumePerDay.map((el) => {
-        chartData.value.labels = [
-          ...chartData.value.labels,
-          convertToDayMonth(el?.date as Date),
-        ]
-        chartData.value.datasets[0].data = [
-          ...chartData.value.datasets[0].data,
-          bigMath.toNum(el.volume),
-        ]
-      })
+      const { data } = await callers.getTxVolumePerDays(startDate, endDate)
+      if (data) {
+        data.map((el) => {
+          el.date = new Date(el.date)
+          el['value'] = el.volume
+          delete el.volume
+        })
+        chartData.value = data
+        chartData.value.map((el) => {
+          tempArr = [...tempArr, el.value]
+        })
+        transactionCount.value = tempArr.reduce(
+          (previousValue: number, currentValue: number): number =>
+            previousValue + currentValue
+        )
+      }
 
-      transactionCount.value = chartData.value.datasets[0].data.reduce(
-        (sum: number, el): number => sum + Number(el),
-        0
-      )
-        */
       await getCoinInfo()
       chartDataLoad.value = true
     }
@@ -210,6 +129,8 @@ export default defineComponent({
 
     return {
       chartDataLoad,
+      chartData,
+      chartMargin,
       transactionData,
       priceData,
     }
@@ -266,7 +187,8 @@ export default defineComponent({
       margin-bottom: 3.2rem;
     }
   }
-  &__chart {
+  &__chart,
+  &__chart > .chart-wrapper {
     height: 26.9rem;
   }
   @media (max-width: 768px) {
