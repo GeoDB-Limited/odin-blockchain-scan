@@ -37,7 +37,6 @@ export default defineComponent({
 })
 </script>
 <style scoped lang="scss">
-
 footer {
   background: var(--clr__tooltip-bg);
   height: 92px;

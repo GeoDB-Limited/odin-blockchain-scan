@@ -31,10 +31,8 @@
     </div>
     <transition name="fade" mode="out-in">
       <template v-if="!isLoading">
-        <div class="content">
-          <div class="test">
-            <LineChartD3 :chart="tempDate"></LineChartD3>
-          </div>
+        <div class="content" v-if="chartData">
+          <LineChartD3 :chart="chartData"></LineChartD3>
         </div>
       </template>
       <span class="empty" v-else>
@@ -61,13 +59,7 @@ export default defineComponent({
   name: 'DailyTransactionsVolumeChart',
   components: { LineChartD3, BackButton },
   setup: function () {
-    const tempDate = ref([
-      { date: new Date('October 1, 2021 00:00:00'), value: 4 },
-      { date: new Date('October 2, 2021 00:00:00'), value: 2 },
-      { date: new Date('October 3, 2021 00:00:00'), value: 5 },
-      { date: new Date('October 4, 2021 00:00:00'), value: 11 },
-      { date: new Date('October 5, 2021 00:00:00'), value: 22 },
-    ])
+    const chartData = ref()
 
     const router: Router = useRouter()
     const route: RouteLocationNormalizedLoaded = useRoute()
@@ -95,25 +87,29 @@ export default defineComponent({
 
       const endDate = new Date()
       const startDate = new Date()
-      startDate.setDate(startDate.getDate() - 2)
+      startDate.setDate(startDate.getDate() - days)
 
       isLoading.value = true
       try {
-        console.log(await callers.getTxVolumePerDays(startDate, endDate))
-        console.log(await callers.getTxVolume({ startDate, endDate }))
-
-        isLoading.value = false
+        const { data } = await callers.getTxVolumePerDays(startDate, endDate)
+        data.map((el) => {
+          el.date = new Date(el.date)
+          el['value'] = el.volume
+          delete el.volume
+        })
+        chartData.value = data
       } catch (error) {
         handleError(error)
         console.error(error)
+      } finally {
+        isLoading.value = false
       }
     }
 
     // TODO: temp change date
     watch(
       sortingValue,
-      // async (): Promise<void> => await getChartData(Number(sortingValue.value))
-      (): void => console.debug('sortingValue', Number(sortingValue.value))
+      async (): Promise<void> => await getChartData(Number(sortingValue.value))
     )
 
     const getChartData = async (_sortingValue: number): Promise<void> => {
@@ -127,7 +123,7 @@ export default defineComponent({
     return {
       router,
       route,
-      tempDate,
+      chartData,
       sortingDays,
       sortingValue,
       isLoading,

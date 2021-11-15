@@ -66,7 +66,7 @@ export default defineComponent({
     blockData: {
       required: true,
     },
-  }
+  },
 })
 </script>
 

@@ -13,6 +13,7 @@ export const API_CONFIG = {
   rpc: 'http://localhost:26657',
   faucet: 'http://localhost:5005',
   exBridge: 'http://localhost:90',
+  telemetryUrl: 'http://localhost:8100',
   // exBridgeFee: '10',
   hdDeviation: stringToPath("m/44'/494'/0'/0/0"),
 }

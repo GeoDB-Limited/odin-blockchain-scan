@@ -158,11 +158,11 @@ const makeCallers = () => {
     ),
     getTxVolumePerDays: (start_time: Date, end_time: Date) => {
       return axios.get(
-        `http://localhost:8100/telemetry/blocks/txVolumePerDays`,
+        `${API_CONFIG.telemetryUrl}/telemetry/blocks/txVolumePerDays`,
         {
           params: {
-            start_time,
-            end_time,
+            start_time: (start_time.getTime() / 1000).toFixed(),
+            end_time: (end_time.getTime() / 1000).toFixed(),
           },
         }
       )

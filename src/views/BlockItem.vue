@@ -77,7 +77,9 @@
             </div>
           </div>
           <div class="info-value">
-            <span>{{ formatDate(blockInfo?.block?.header.time, 'MMM d, yyyy, HH:mm') }}</span>
+            <span>{{
+              formatDate(blockInfo?.block?.header.time, 'MMM d, yyyy, HH:mm')
+            }}</span>
           </div>
         </div>
         <div

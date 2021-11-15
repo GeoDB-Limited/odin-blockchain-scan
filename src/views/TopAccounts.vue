@@ -4,7 +4,9 @@
       <h2 class="view-title" title="some blocks">Top accounts</h2>
     </div>
     <div class="mg-b16 mg-t16 accounts-header__wrapper">
-      <p class="accounts-header__count" v-if="accounts?.length">{{ accounts?.length }} accounts found</p>
+      <p class="accounts-header__count" v-if="accounts?.length">
+        {{ accounts?.length }} accounts found
+      </p>
       <p v-else></p>
       <div class="sort-wrapper">
         <span>Sort By</span>
@@ -93,7 +95,7 @@ import { Pagination } from '@/api/query-ext/telemetryExtension.ts'
 import { Coin } from '@cosmjs/stargate/build/codec/cosmos/base/v1beta1/coin'
 import { TempBalanceType } from '@/helpers/Types'
 import { getTopAccountList } from '@/helpers/Accounts'
-import {allowedTxCount} from "@/helpers/helpers";
+import { allowedTxCount } from '@/helpers/helpers'
 
 export default defineComponent({
   components: { VPagination, AccountsLine },

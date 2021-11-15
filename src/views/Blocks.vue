@@ -147,7 +147,6 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-
 .data-sources__table-head,
 .data-sources__table-row {
   grid:

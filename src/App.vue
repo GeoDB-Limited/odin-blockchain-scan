@@ -107,8 +107,6 @@ export default defineComponent({
   justify-content: space-between;
 }
 
-
-
 .logo {
   width: 90px;
 }

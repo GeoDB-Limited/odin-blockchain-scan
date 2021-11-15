@@ -183,7 +183,6 @@ export default defineComponent({
 })
 </script>
 <style lang="scss" scoped>
-
 .block {
   &-item {
     padding: 2.6rem 3.3rem;
