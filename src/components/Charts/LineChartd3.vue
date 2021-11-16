@@ -81,6 +81,7 @@ import {
   axisLeft,
   axisBottom,
   max,
+  timeMonth,
 } from 'd3'
 import { convertToDayMonth } from '@/helpers/dates'
 
@@ -187,8 +188,6 @@ export default defineComponent({
           return _timeFormat(d)
         })
         .ticks(data.value.length)
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       yAxis.value = axisLeft(_y.value)
 
       yAxisGrid.value = axisLeft(_y.value)
@@ -209,11 +208,11 @@ export default defineComponent({
         .x((d: any) => _x.value(d.date))
         .y((d: any) => _y.value(d.value))
 
-      _x.value.domain([
-        data.value[0].date,
-        data.value[data.value.length - 1].date,
-      ])
-      _y.value.domain([0, max(data.value, (d: any) => d.value)])
+      _x.value
+        .domain([data.value[0].date, data.value[data.value.length - 1].date]).nice()
+        .ticks(data.value.length)
+
+      _y.value.domain([0, max(data.value, (d: any) => d.value)]).nice()
 
       if (isFirstRender.value) {
         const y_grid = chart.value
