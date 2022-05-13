@@ -59,11 +59,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'TransactionsItem',
     component: () => import('../views/TransactionsItem.vue'),
   },
-  {
-    path: '/pending_transactions',
-    name: 'PendingTransactions',
-    component: () => import('../views/PendingTransactions.vue'),
-  },
+
   {
     path: '/validators',
     name: 'Validators',
@@ -74,21 +70,7 @@ const routes: Array<RouteRecordRaw> = [
     name: 'ValidatorItem',
     component: () => import('../views/ValidatorItem.vue'),
   },
-  {
-    path: '/tokenomics',
-    name: 'Tokenomics',
-    component: () => import('../views/TokenomicsView.vue'),
-  },
-  {
-    path: '/odin-geo',
-    name: 'odin&geo',
-    component: () => import('../views/OdinGeo.vue'),
-  },
-  {
-    path: '/delegators/:hash/',
-    name: 'DelegatorItem',
-    component: () => import('../views/DelegatorItem.vue'),
-  },
+
   {
     path: '/top_accounts/',
     name: 'TopAccounts',

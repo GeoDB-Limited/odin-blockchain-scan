@@ -104,7 +104,7 @@ import { formatDate } from '@/helpers/formatters'
 import BackButton from '@/components/BackButton.vue'
 import CopyButton from '@/components/CopyButton.vue'
 import TitledLink from '@/components/TitledLink.vue'
-import { prepareTransaction } from '@/helpers/helpers'
+// import { prepareTransaction } from '@/helpers/helpers'
 
 const TOOLTIP_INFO = {
   blockHeight: `Also known as Block Number. The block height,
@@ -146,10 +146,10 @@ export default defineComponent({
 
         blockCreator.value = validatorData.data.result.result.operator_address
 
-        const { txs } = await callers.getTxSearch({
-          query: `tx.height = ${Number(route.params.id)}`,
-        })
-        blocksTransactions.value = await prepareTransaction(txs)
+        // const { txs } = await callers.getTxSearch({
+        //   query: `tx.height = ${Number(route.params.id)}`,
+        // })
+        // blocksTransactions.value = await prepareTransaction(txs)
       } catch (error) {
         handleError(error as Error)
       }

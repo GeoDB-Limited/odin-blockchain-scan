@@ -100,7 +100,7 @@ import { diffDays, cropText, getDay } from '@/helpers/formatters'
 import LatestList from '@/components/LatestList/LatestList.vue'
 import LatestListItem from '@/components/LatestList/LatestListItem.vue'
 import TitledLink from '@/components/TitledLink.vue'
-import { prepareTransaction, toHexFunc } from '@/helpers/helpers'
+import { toHexFunc } from '@/helpers/helpers'
 import { adjustedData, TransformedBlocks } from '@/helpers/Types'
 import { handleError } from '@/helpers/errors'
 import { prepareBlocks } from '@/helpers/blocksHelper'
@@ -114,7 +114,7 @@ export default defineComponent({
     onMounted(async (): Promise<void> => {
       try {
         await getLatestBlocks()
-        await getLatestTransactions()
+        // await getLatestTransactions()
       } catch (error) {
         handleError(error as Error)
       }
@@ -124,7 +124,7 @@ export default defineComponent({
 
     let latestTransactions = ref<Array<adjustedData> | null>([])
     let lastHeight = ref<number>(0)
-    let totalCount = ref<number>()
+    // let totalCount = ref<number>()
 
     const getLatestBlocks = async (): Promise<void> => {
       const { blockMetas, lastHeight: reqLastHeight } =
@@ -132,20 +132,20 @@ export default defineComponent({
       latestBlocks.value = await prepareBlocks(blockMetas.slice(0, 5))
       lastHeight.value = reqLastHeight
     }
-    const getLatestTransactions = async (): Promise<void> => {
-      const { totalCount: reqTotalCount, txs } = await callers.getTxSearch({
-        query: `tx.height >= 0`,
-        per_page: 5,
-        order_by: 'desc',
-      })
+    // const getLatestTransactions = async (): Promise<void> => {
+    //   const { totalCount: reqTotalCount, txs } = await callers.getTxSearch({
+    //     query: `tx.height >= 0`,
+    //     per_page: 5,
+    //     order_by: 'desc',
+    //   })
 
-      if (txs) {
-        latestTransactions.value = await prepareTransaction(txs)
-      }
+    //   if (txs) {
+    //     latestTransactions.value = await prepareTransaction(txs)
+    //   }
 
-      console.debug('latestTransactions', latestTransactions.value)
-      totalCount.value = reqTotalCount
-    }
+    //   console.debug('latestTransactions', latestTransactions.value)
+    //   totalCount.value = reqTotalCount
+    // }
 
     let latestBlocksHeader = {
       title: 'Latest Blocks',

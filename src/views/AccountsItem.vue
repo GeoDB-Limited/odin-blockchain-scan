@@ -76,7 +76,7 @@ import {
 import { routerBack } from '@/router'
 import { callers } from '@/api/callers'
 import { convertToTxTime } from '@/helpers/dates'
-import { copyValue, prepareTransaction } from '@/helpers/helpers'
+import { copyValue } from '@/helpers/helpers'
 
 import { Bech32 } from '@cosmjs/encoding'
 import { bigMath } from '@/helpers/bigMath'
@@ -98,7 +98,7 @@ export default defineComponent({
 
     const page = ref<number>(1)
     const totalPages = ref<number>()
-    const ITEMS_PER_PAGE = 5
+    // const ITEMS_PER_PAGE = 5
 
     const displayedGeoBalance = computed(() =>
       geoBalance.value ? `${geoBalance.value} GEO` : '0 GEO'
@@ -122,18 +122,18 @@ export default defineComponent({
           Bech32.decode(route.params.hash as string).data
         )
 
-        const { txs, totalCount } = await callers.getTxSearch({
-          query: `message.sender='${route.params.hash}'`,
-          page: page.value,
-          per_page: ITEMS_PER_PAGE,
-          order_by: 'desc',
-        })
+        // const { txs, totalCount } = await callers.getTxSearch({
+        //   query: `message.sender='${route.params.hash}'`,
+        //   page: page.value,
+        //   per_page: ITEMS_PER_PAGE,
+        //   order_by: 'desc',
+        // })
 
         geoBalance.value = await getTotalAmount(validatorAddress, 'minigeo')
         odinBalance.value = await getTotalAmount(validatorAddress, 'loki')
-        transactions.value = await prepareTransaction(txs)
-        totalTxCount.value = totalCount
-        totalPages.value = Math.ceil(totalCount / ITEMS_PER_PAGE)
+        // transactions.value = await prepareTransaction(txs)
+        // totalTxCount.value = totalCount
+        // totalPages.value = Math.ceil(totalCount / ITEMS_PER_PAGE)
       } catch (e) {
         handleError(e as Error)
       }

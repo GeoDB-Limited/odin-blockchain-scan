@@ -104,10 +104,10 @@ export default defineComponent({
       )
       accounts.value = await getTopAccountList(pagination)
       for (const a of accounts.value) {
-        const { txs } = await callers.getTxSearch({
-          query: `message.sender='${a.address}'`,
-        })
-        a.total_tx = txs?.length || 0
+        // const { txs } = await callers.getTxSearch({
+        //   query: `message.sender='${a.address}'`,
+        // })
+        a.total_tx = 0
       }
       totalPages.value = Math.ceil(accounts.value.length / ITEMS_PER_PAGE)
       sortingValue.value = 'geo'

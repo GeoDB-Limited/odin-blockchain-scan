@@ -2,7 +2,6 @@
   <div class="app-nav" :class="{ ['app-nav_mobile']: isOpen }">
     <div class="app-nav__wrap-cont">
       <LinksDropdown :list="BlockchainList" @redirect="changeRoute" />
-      <LinksDropdown :list="TokenomicList" @redirect="changeRoute" />
       <LinksDropdown :list="ResourceList" @redirect="changeRoute" />
       <router-link
         @click="changeRoute"
